@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Assume we have the same rules in a JSON format
+            const portalName = "Airport";
+            const routeData = {
+                "rule_order": ["mac", "ssid", "hostname", "useragent"],
+                "rules": {
+                    "mac": { "exact": { "00:11:22:33:44:55": "macPage.html" } },
+                    "ssid": { "exact": { "MySSID": "ssidPage.html" } },
+                    "hostname": { "regex": { "^user": "userPage.html" } },
+                    "useragent": { "regex": { "Firefox": "firefoxPage.html" } }
+                },
+                "default": "defaultPage.html"
+            };
+
+            const clientData = {
+                mac: "00:11:22:33:44:55",  // Example MAC address (this would typically come from a backend)
+                ssid: "MySSID",             // Example SSID
+                hostname: "user01",         // Example Hostname
+                useragent: navigator.userAgent // JavaScript gets the user-agent
+            };
+
+            let includePage = null;
+
+            // Check rules to find the page
+            for (let rule of routeData.rule_order) {
+                includePage = handleRule(routeData.rules[rule], clientData[rule]);
+                if (includePage !== null) {
+                    loadPage(includePage);
+                    break;
+                }
+            }
+
+            // If no match, show the default page
+            if (includePage === null) {
+                loadPage(routeData.default);
+            }
+
+            // Function to handle the rule checks (exact or regex)
+            function handleRule(rules, clientData) {
+                let result = null;
+                if (rules.exact && rules.exact[clientData]) {
+                    result = rules.exact[clientData];
+                }
+                if (!result && rules.regex) {
+                    for (let pattern in rules.regex) {
+                        const regex = new RegExp(pattern);
+                        if (regex.test(clientData)) {
+                            result = rules.regex[pattern];
+                            break;
+                        }
+                    }
+                }
+                return result;
+            }
+
+            // Load the page (this can be handled by fetching content or redirecting)
+            function loadPage(page) {
+                window.location.href = page;
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Loading Portal...</h1>
+</body>
+</html>
+
+
